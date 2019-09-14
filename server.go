@@ -19,7 +19,8 @@ func authenticater(c *gin.Context) bool {
 
 func authMiddleware(c *gin.Context) {
 	if !authenticater(c) {
-		c.JSON(http.StatusUnauthorized, gin.H{"status": "error"})
+		errorMessage := entity.ErrorMessage{"Authentication Error"}
+		c.JSON(http.StatusUnauthorized, errorMessage)
 		c.Abort()
 	}
 	c.Next()
@@ -29,18 +30,21 @@ func createCustomer(c *gin.Context) {
 	var customer entity.Customer
 	err := c.ShouldBindJSON(&customer)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "ERROR"})
+		errorMessage := entity.ErrorMessage{err.Error()}
+		c.JSON(http.StatusBadRequest, errorMessage)
 		return
 	}
 	custID, err := db.InsertCustomer(customer)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		errorMessage := entity.ErrorMessage{err.Error()}
+		c.JSON(http.StatusInternalServerError, errorMessage)
 		return
 	}
 
 	customerAdded, err := db.GetCustomerByID(custID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		errorMessage := entity.ErrorMessage{err.Error()}
+		c.JSON(http.StatusInternalServerError, errorMessage)
 		return
 	}
 	c.JSON(http.StatusCreated, customerAdded)
@@ -53,7 +57,8 @@ func getCustomerByID(c *gin.Context) {
 		intID, _ := strconv.Atoi(paramID)
 		customer, err := db.GetCustomerByID(intID)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+			errorMessage := entity.ErrorMessage{err.Error()}
+			c.JSON(http.StatusInternalServerError, errorMessage)
 			return
 		}
 		c.JSON(http.StatusOK, customer)
@@ -63,7 +68,8 @@ func getCustomerByID(c *gin.Context) {
 func getAllCustomer(c *gin.Context) {
 	custList, err := db.GetAllCustomer()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		errorMessage := entity.ErrorMessage{err.Error()}
+		c.JSON(http.StatusInternalServerError, errorMessage)
 		return
 	}
 	c.JSON(http.StatusOK, custList)
@@ -74,13 +80,15 @@ func updateCustomer(c *gin.Context) {
 	var customer entity.Customer
 	err := c.ShouldBindJSON(&customer)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"status": "error"})
+		errorMessage := entity.ErrorMessage{err.Error()}
+		c.JSON(http.StatusBadRequest, errorMessage)
 		return
 	}
 	if paramID != "" {
 		updatedCust, err := db.UpdateCustomer(customer)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"status": "error"})
+			errorMessage := entity.ErrorMessage{err.Error()}
+			c.JSON(http.StatusBadRequest, errorMessage)
 			return
 		}
 		c.JSON(http.StatusOK, updatedCust)
@@ -93,10 +101,11 @@ func deleteCustomer(c *gin.Context) {
 		intID, _ := strconv.Atoi(paramID)
 		err := db.DeleteCustomerByID(intID)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"status": "error"})
+			errorMessage := entity.ErrorMessage{err.Error()}
+			c.JSON(http.StatusBadRequest, errorMessage)
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{"message": "customer deleted"})
+		c.JSON(http.StatusOK, entity.ErrorMessage{"customer deleted"})
 	}
 }
 

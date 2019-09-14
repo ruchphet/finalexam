@@ -146,7 +146,7 @@ func CreateCustTable() {
 	);`
 	_, err := db.Exec(createTB)
 	if err != nil {
-		log.Println("Can not create table : ", err)
+		log.Println("Can not create table : ", err.Error())
 	}
 	log.Println("Create Table success.")
 	defer db.Close()
